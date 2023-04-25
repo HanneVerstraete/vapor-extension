@@ -1,26 +1,80 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+	context.subscriptions.push(
+		vscode.commands.registerCommand('renderLeaf', () => {
+			const panel = vscode.window.createWebviewPanel(
+				'leafRendering', 
+				'Leaf Render', 
+				vscode.ViewColumn.Two,
+				{}
+			);
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "vapor-extension" is now active!');
+			const convertedTemplate = _convertToHtml(_getLeafTemplate());
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('vapor-extension.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from Vapor extension!');
-	});
+			panel.webview.html = convertedTemplate;
 
-	context.subscriptions.push(disposable);
+			let timer = setTimeout(() => {}, 0);
+
+			vscode.workspace.onDidChangeTextDocument(() => {
+				clearTimeout(timer);
+
+				timer = setTimeout(() => {
+					const convertedTemplate = _convertToHtml(_getLeafTemplate());
+	
+					panel.webview.html = convertedTemplate;
+				}, 400);
+		   });
+		})
+	  );
 }
 
-// This method is called when your extension is deactivated
+function _getLeafTemplate(): string {
+	const editor = vscode.window.activeTextEditor;
+
+	if (editor) {
+		return editor.document.getText();
+	}
+
+	return '';
+}
+
+function _convertToHtml(template: string): string {
+	const reg = /[#][(](.*)[)]/;
+	
+	let arr;
+	let result = template;
+	let dummyData: Record<string, any> = _getDummyData((template));
+	
+	while ((arr = reg.exec(result)) !== null) {
+		const parName: string = arr[1];
+		
+		result = result.replace(reg, dummyData[parName]);
+	}
+
+	return result;
+}
+
+function _getDummyData(template: string): Record<string, any> {
+	const reg = /<!-- ([^>]*) -->/g;
+	const matches = template.match(reg) ?? [];
+
+	let dummyData = {};
+
+	matches.forEach((match) => {
+		if (!match.includes('dummyData')) {
+			return;
+		}
+
+		const toConvert = match.substring(match.indexOf('{'), match.lastIndexOf('}') + 1);
+		
+		// TO DO should convert to json of choose other format/way + add catching of invalid json
+		const formattedToJson = JSON.parse(toConvert);
+		
+		dummyData = {...dummyData, ...formattedToJson};
+	});
+
+	return dummyData;
+}
+
 export function deactivate() {}

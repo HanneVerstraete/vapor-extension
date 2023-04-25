@@ -14,8 +14,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "vapor-extension.helloWorld",
-        "title": "Hello World"
+        "command": "renderLeaf",
+        "title": "Render Leaf"
       }
     ]
   },
