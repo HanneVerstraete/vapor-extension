@@ -40,17 +40,39 @@ function _getLeafTemplate(): string {
 }
 
 function _convertToHtml(template: string): string {
-	const reg = /[#][(](.*)[)]/;
-	
-	let arr;
+	const dummyData: Record<string, any> = _getDummyData((template));
+
 	let result = template;
-	let dummyData: Record<string, any> = _getDummyData((template));
+	
+	result = _convertVariables(result, dummyData);
+	result = _convertCount(result, dummyData);
+
+	return result;
+}
+
+function _convertVariables(result: string, dummyData: Record<string, any>): string {
+	const reg = /[#][(](.*)[)]/;
+	let arr;
 	
 	while ((arr = reg.exec(result)) !== null) {
 		const parName: string = arr[1];
 		
 		result = result.replace(reg, dummyData[parName]);
 	}
+
+	return result;
+}
+
+function _convertCount(result: string, dummyData: Record<string, any>): string {
+	const reg = /#count[(](.*)[)]/;
+
+	let arr;
+	
+	while ((arr = reg.exec(result)) !== null) {
+		const parName: string = arr[1];
+		
+		result = result.replace(reg, dummyData[parName].length);
+	}	
 
 	return result;
 }
