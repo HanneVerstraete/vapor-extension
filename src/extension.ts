@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
-		vscode.commands.registerCommand('renderLeaf', () => {
+		vscode.commands.registerCommand('renderLeaf', async () => {
 			const panel = vscode.window.createWebviewPanel(
 				'leafRendering', 
 				'Leaf Render', 
@@ -10,7 +10,7 @@ export function activate(context: vscode.ExtensionContext) {
 				{}
 			);
 
-			const convertedTemplate = _convertToHtml(_getLeafTemplate());
+			const convertedTemplate = await _convertToHtml(_getLeafTemplate());
 
 			panel.webview.html = convertedTemplate;
 
@@ -19,8 +19,8 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.workspace.onDidChangeTextDocument(() => {
 				clearTimeout(timer);
 
-				timer = setTimeout(() => {
-					const convertedTemplate = _convertToHtml(_getLeafTemplate());
+				timer = setTimeout(async () => {
+					const convertedTemplate = await _convertToHtml(_getLeafTemplate());
 	
 					panel.webview.html = convertedTemplate;
 				}, 400);
@@ -39,13 +39,46 @@ function _getLeafTemplate(): string {
 	return '';
 }
 
-function _convertToHtml(template: string): string {
+async function _convertToHtml(template: string): Promise<string> {
 	const dummyData: Record<string, any> = _getDummyData((template));
 
 	let result = template;
 	
+	result = await _convertImports(result);
+	result = _convertExportsAndExtensions(result);
 	result = _convertVariables(result, dummyData);
 	result = _convertCount(result, dummyData);
+
+	return result;
+}
+
+async function _convertImports(result: string): Promise<string> {
+	const reg = /#import[(]["](.*)["][)]/;
+
+	// TO DO also be able to find path if file is in different folder?
+	const currentlyOpenTabfilePath = vscode.window?.activeTextEditor?.document?.fileName ?? '';
+	const basePath = currentlyOpenTabfilePath.substring(0, currentlyOpenTabfilePath.lastIndexOf('/'));
+
+	let arr;
+
+	while ((arr = reg.exec(result)) !== null) {
+		await vscode.workspace.openTextDocument(basePath + '/' + arr[1] + '.leaf').then((document) => {
+			let importedTemplate = document.getText();
+
+			result = result.replace(reg, importedTemplate);	
+		});
+	}
+
+	return result;
+}
+
+function _convertExportsAndExtensions(result: string): string {
+	const reg = /#((export[(]["](.*)["][)][:]|endexport)|(extend[(]["](.*)["][)][:]|endextend))/;
+	let arr;
+	
+	while ((arr = reg.exec(result)) !== null) {
+		result = result.replace(reg, '');
+	}
 
 	return result;
 }
