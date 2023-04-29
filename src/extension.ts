@@ -46,6 +46,7 @@ async function _convertToHtml(template: string): Promise<string> {
 	
 	result = await _convertImports(result);
 	result = _convertExportsAndExtensions(result);
+	result = _convertForLoops(result, dummyData);
 	result = _convertVariables(result, dummyData);
 	result = _convertCount(result, dummyData);
 
@@ -83,14 +84,44 @@ function _convertExportsAndExtensions(result: string): string {
 	return result;
 }
 
+function _convertForLoops(result: string, dummyData: Record<string, any>): string {
+	const regForCondition = /#for[(](.*)[)]/;
+	const regForSection = /#for[(]([^)]*)[)]:((.|\n)*)#endfor/;
+
+	let arrForCondition;
+	let arrForSection;
+
+	while ((arrForSection = regForSection.exec(result)) !== null) {
+		arrForCondition = regForCondition.exec(result) ?? [];
+		
+		const loopConditions = arrForCondition[1]?.split(' ') ?? '';
+		let toAdd = '';
+
+		for(let i = 0; i < dummyData[loopConditions[2]].length; i++) {
+			toAdd += arrForSection[2].replace(loopConditions[0], `${loopConditions[2]}[${i}]`);
+		}
+
+		result = result.replace(regForSection, toAdd);
+	}	
+
+	return result;
+}
+
 function _convertVariables(result: string, dummyData: Record<string, any>): string {
 	const reg = /[#][(](.*)[)]/;
 	let arr;
-	
+
 	while ((arr = reg.exec(result)) !== null) {
 		const parName: string = arr[1];
+		const parPath = parName.split(/[.\[\]]+/);
+
+		let dummyResult = {...dummyData};
+
+		for (let i = 0; i < parPath.length; i++) {
+			dummyResult = dummyResult[parPath[i]];	
+		}
 		
-		result = result.replace(reg, dummyData[parName]);
+		result = result.replace(reg, (dummyResult as unknown as string));
 	}
 
 	return result;
