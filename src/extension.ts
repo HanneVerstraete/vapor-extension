@@ -46,6 +46,7 @@ async function _convertToHtml(template: string): Promise<string> {
 	
 	result = await _convertImports(result);
 	result = _convertExportsAndExtensions(result);
+	result = _convertIfStatements(result);
 	result = _convertForLoops(result, dummyData);
 	result = _convertVariables(result, dummyData);
 	result = _convertCount(result, dummyData);
@@ -79,6 +80,30 @@ function _convertExportsAndExtensions(result: string): string {
 	
 	while ((arr = reg.exec(result)) !== null) {
 		result = result.replace(reg, '');
+	}
+
+	return result;
+}
+
+function _convertIfStatements(result: string): string {
+	const regIfElse = /#if[(]([^)]*)[)]:((.|\n)*)#else:((.|\n)*)#endif/;
+	const regIf = /#if[(]([^)]*)[)]:((.|\n)*)#endif/;
+
+	let arrIfElse;
+	let arrIf;
+
+	while ((arrIf = regIf.exec(result)) !== null) {
+		arrIfElse = regIfElse.exec(result);
+
+		if (arrIfElse && eval(arrIfElse[1]) === true) {
+			result = result.replace(regIfElse, arrIfElse?.[2] ?? '');
+		} else if(arrIfElse ) {
+			result = result.replace(regIfElse, arrIfElse?.[4] ?? '');
+		} else if (arrIf && eval(arrIf[1]) === true) {
+			result = result.replace(regIf, arrIf[2]);
+		} else {
+			result = result.replace(regIf, '');
+		}
 	}
 
 	return result;
