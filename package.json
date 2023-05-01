@@ -9,7 +9,9 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+		"onCommand:workbench.action.tasks.runTask"
+	],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -23,7 +25,18 @@
         "language": "swift",
         "path": "./src/snippets.json"
       }
-    ]
+    ],
+    "taskDefinitions": [
+			{
+				"type": "swift",
+				"properties": {
+					"task": {
+						"type": "string",
+						"description": "The swift task to run"
+					}
+				}
+			}
+		]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
