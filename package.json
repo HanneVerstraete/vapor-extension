@@ -17,6 +17,12 @@
         "command": "renderLeaf",
         "title": "Render Leaf"
       }
+    ],
+    "snippets": [
+      {
+        "language": "swift",
+        "path": "./src/snippets.json"
+      }
     ]
   },
   "scripts": {

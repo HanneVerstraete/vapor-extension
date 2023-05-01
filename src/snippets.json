@@ -1,0 +1,22 @@
+{
+    "Get request": {
+      "prefix": ["app", "app.get"],
+      "body": ["app.get(${1:parameters}) {req ->  ${2:type} in", "\t${3:method}", "}"],
+      "description": "A get request."
+    },
+    "Post request": {
+      "prefix": ["app", "app.post"],
+      "body": ["app.post(${1:parameters}) {req ->  ${2:type} in", "\t${3:method}", "}"],
+      "description": "A post request."
+    },
+    "Put request": {
+      "prefix": ["app", "app.put"],
+      "body": ["app.put(${1:parameters}) {req ->  ${2:type} in", "\t${3:method}", "}"],
+      "description": "A post request."
+    },
+    "Delete request": {
+      "prefix": ["app", "app.delete"],
+      "body": ["app.delete(${1:parameters}) {req ->  ${2:type} in", "\t${3: method}", "}"],
+      "description": "A post request."
+    }
+}
