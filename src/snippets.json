@@ -18,5 +18,56 @@
       "prefix": ["app", "app.delete"],
       "body": ["app.delete(${1:parameters}) {req ->  ${2:type} in", "\t${3: method}", "}"],
       "description": "A post request."
+    },
+    "Validatable": {
+      "prefix": ["Validatable", "validations"],
+      "body": [
+        "extension ${1:${TM_SELECTED_TEXT}}: Validatable {", 
+          "\tstatic func validations(_ validations: inout Validations) {", 
+            "\t\tvalidations.add(${3:expectedKey}, as: ${4:expectedType}, is: ${5: validators})", 
+          "\t}", 
+        "}"
+      ],
+      "description": "Conform type to Validatable."
+    },
+    "Validations": {
+      "prefix": ["validations.add"],
+      "body": ["validations.add(${3:expectedKey}, as: ${4:expectedType}, is: ${5: validators}$0)"],
+      "description": "Add validations to Validatable."
+    },
+    "Request logging": {
+      "prefix": ["logger", "req.logger"],
+      "body": ["req.logger.${1|info,trace,debug,notice,warning,error,critical|}(\"${2:message}\")"],
+      "description": "Add request logging statement"
+    },
+    "Application logging": {
+      "prefix": ["logger", "app.logger"],
+      "body": ["app.logger.${1|info,trace,debug,notice,warning,error,critical|}(\"${2:message}\")"],
+      "description": "Add application logging statement"
+    },
+    "Database credentials": {
+      "prefix": ["app.database.use", ".postgres", ".mysql"],
+      "body": ["app.databases.use(${1|.postgres,.mysql|}(hostname: \"${2}\", username: \"${3}\", password: \"${4}\", database: \"${5}\"), as: ${6|.psql,.mysql|})"],
+      "description": "Configure the database's credentials (postgress, mysql)"
+    },
+    "Database connection string": {
+      "prefix": ["app.database.use", ".postgres", ".mysql"],
+      "body": ["app.databases.use(${1|.postgres,.mysql|}(url: \"${2}\"), as: ${3|.psql,.mysql|})"],
+      "description": "Configure the database's connection string (postgress, mysql)"
+    },
+    "SQLite database configuration": {
+      "prefix": ["app.database.use", ".sqlite"],
+      "body": ["app.databases.use(.sqlite(.file: (\"${1}\")), as: .sqlite)"],
+      "description": "Configure the SQLite database"
+    },
+    "SQLite database configuration (in memory)": {
+      "prefix": ["app.database.use", ".sqlite"],
+      "body": ["app.databases.use(.sqlite(.memory), as: .sqlite)"],
+      "description": "Configure the SQLite database (in memory)"
+    },
+    "Mongo database connection string": {
+      "prefix": ["app.database.use", ".mongo"],
+      "body": ["app.databases.use(.mongo(connectionString: \"${1}\"), as: .mongo)"],
+      "description": "Configure the Mongo database's connection string"
     }
 }
