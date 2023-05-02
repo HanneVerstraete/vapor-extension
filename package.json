@@ -10,8 +10,9 @@
     "Other"
   ],
   "activationEvents": [
-		"onCommand:workbench.action.tasks.runTask"
-	],
+    "onLanguage:swift",
+    "workspaceContains:Package.swift"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -28,14 +29,17 @@
     ],
     "taskDefinitions": [
 			{
-				"type": "swift",
-				"properties": {
-					"task": {
-						"type": "string",
-						"description": "The swift task to run"
-					}
-				}
-			}
+        "type": "vapor",
+        "required": [
+          "task"
+      ],
+        "properties": {
+          "task": {
+            "description": "The command to execute. Don't include any arguments as that will cause the command to be quoted.",
+            "type": "string"
+          }
+        }
+      }
 		]
   },
   "scripts": {

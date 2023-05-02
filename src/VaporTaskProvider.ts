@@ -1,61 +1,45 @@
 import * as vscode from "vscode";
-import { getSwiftExecutable } from "./utilities/utilities";
 
-export class VaporTaskProvider implements vscode.TaskProvider {
-    private vaporPromise: Thenable<vscode.Task[]> | undefined = undefined;
-
-    constructor(workspaceRoot: string) {
-        
-    }
-
-    public provideTasks(): Thenable<vscode.Task[]> | undefined {
-        if (!this.vaporPromise) {
-            this.vaporPromise = createVaporTask();
-        }
-
-        return this.vaporPromise;
-    }
-
-    public resolveTask(_task: vscode.Task): vscode.Task | undefined {
-		const task = _task.definition.task;
-
-		if (task) {
-            const swift = getSwiftExecutable();
-
-            let fullCwd = task.definition.cwd;
-    
-            const newTask = new vscode.Task(
-                task.definition,
-                task.scope ?? vscode.TaskScope.Workspace,
-                task.name ?? "Swift Custom Task",
-                "swift",
-                new vscode.ProcessExecution(swift)
-            );
-            newTask.group = task.group;
-            newTask.presentationOptions = task.presentationOptions;
-    
-            return newTask;
-		}
-		return undefined;
-    }
+function createPrintRoutesTask(): vscode.Task {
+    return createSwiftTask('swift run App routes', 'Print All Routes', vscode.TaskGroup.Build);
 }
 
-async function createVaporTask(): Promise<vscode.Task[]> {
-    const result: vscode.Task[] = [];
-    const swift = getSwiftExecutable();
-
-    const task = new vscode.Task(
-        { type: 'swift', task: 'swift run App routes'},
-        vscode.TaskScope.Workspace,
-        'run routes',
-        'swift',
-        new vscode.ProcessExecution(swift)
+function createSwiftTask(command: string, name: string, group?: vscode.TaskGroup): vscode.Task {
+    let task = new vscode.Task(
+        { type: 'vapor', task: command },
+        vscode.workspace.workspaceFolders?.[0] ?? vscode.TaskScope.Workspace,
+        name,
+        'vapor',
+        new vscode.ShellExecution(command)
     );
 
-    task.presentationOptions = {reveal: 1, panel: 1};
-    task.group = {isDefault: true, id: 'Build'};
-    result.push(task);
-
-    return result;
+    task.detail = `${command}`;
+    task.group = group;
+    return task;
 }
 
+export class VaporTaskProvider implements vscode.TaskProvider {
+
+    constructor(private workspaceRoot: string) { }
+
+    async provideTasks(token: vscode.CancellationToken): Promise<vscode.Task[]> {
+        let tasks = [
+            createPrintRoutesTask(),
+        ];
+
+        return tasks;
+    }
+
+    resolveTask(task: vscode.Task, token: vscode.CancellationToken): vscode.Task {
+        let newTask = new vscode.Task(
+            task.definition,
+            vscode.TaskScope.Workspace,
+            task.name || 'Custom Task',
+            'vapor',
+            new vscode.ShellExecution(task.definition.command)
+        );
+        newTask.detail = task.detail ?? `${task.definition.command}`;
+        newTask.group = task.group;
+        return newTask;
+    }
+}
