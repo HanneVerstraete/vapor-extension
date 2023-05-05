@@ -40,7 +40,16 @@
           }
         }
       }
-		]
+		],
+    "languages": [
+      {
+        "id": "leaf",
+        "icon": {
+          "light": "./src/vapor-logo.png",
+          "dark": "./src/vapor-logo.png"
+        }
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
