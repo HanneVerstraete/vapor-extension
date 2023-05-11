@@ -9,9 +9,9 @@ export async function setUpLeafRendering () {
     );
 
 	const template = _getActiveTemplate;
+	const baseUrl = _getBaseUrl();
 	
-	// TO DO make base URL configurable
-    panel.webview.html = _getWebView(`http://127.0.0.1:8080/leaf-preview/${template}`);
+    panel.webview.html = _getWebView(`${baseUrl}${template}`);
 
     let timer = setTimeout(() => {}, 0);
 
@@ -53,6 +53,11 @@ function _getActiveTemplate(): string {
 	}
 
 	return template;
+}
+
+function _getBaseUrl() {
+	// TO DO make base URL configurable
+	return 'http://127.0.0.1:8080/leaf-preview/';
 }
 
 function _getWebView(location: string) {

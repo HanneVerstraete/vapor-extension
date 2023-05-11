@@ -1,13 +1,23 @@
 import * as vscode from "vscode";
 
-function createPrintRoutesTask(): vscode.Task {
+function createRoutesTask(): vscode.Task {
     return createSwiftTask('swift run App routes', 'Print All Routes', vscode.TaskGroup.Build);
 }
 
+function createMigrateTask(): vscode.Task {
+    return createSwiftTask('swift run App migrate', 'Start migration', vscode.TaskGroup.Build);
+}
+
+function createServeTask(): vscode.Task {
+    return createSwiftTask('swift run App serve', 'Serve the app', vscode.TaskGroup.Build);
+}
+
 function createSwiftTask(command: string, name: string, group?: vscode.TaskGroup): vscode.Task {
+    const workspace = vscode.workspace.workspaceFolders?.[0] ?? vscode.TaskScope.Workspace
+
     let task = new vscode.Task(
         { type: 'vapor', task: command },
-        vscode.workspace.workspaceFolders?.[0] ?? vscode.TaskScope.Workspace,
+        workspace,
         name,
         'vapor',
         new vscode.ShellExecution(command)
@@ -24,7 +34,9 @@ export class VaporTaskProvider implements vscode.TaskProvider {
 
     async provideTasks(token: vscode.CancellationToken): Promise<vscode.Task[]> {
         let tasks = [
-            createPrintRoutesTask(),
+            createRoutesTask(),
+            createMigrateTask(),
+            createServeTask()
         ];
 
         return tasks;
