@@ -56,8 +56,29 @@ function _getActiveTemplate(): string {
 }
 
 function _getBaseUrl() {
-	// TO DO make base URL configurable
-	return 'http://127.0.0.1:8080/leaf-preview/';
+	let path = '';
+	let basUrl = 'http://127.0.0.1:8080';
+
+	if(vscode.workspace.workspaceFolders !== undefined) {
+	 	path = vscode.workspace.workspaceFolders[0].uri.path ;
+
+		let uri = path + '/Sources/App/routes.swift';
+
+		vscode.workspace.openTextDocument(uri).then((document) => {
+			let text = document.getText();
+			let regex = /localhost[^]*;/;
+			let match = regex.exec(text)?.[0];
+	
+			if (match) {
+				let startIndex = match.indexOf('http');
+				let endIndex = match.lastIndexOf('/');
+	
+				basUrl = match.substring(startIndex, endIndex + 1);
+			}
+		});
+	} 
+
+	return basUrl;
 }
 
 function _getWebView(location: string) {
