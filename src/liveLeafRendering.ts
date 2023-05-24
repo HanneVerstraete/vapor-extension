@@ -5,7 +5,9 @@ export async function setUpLeafRendering () {
         'leafRendering', 
         'Leaf Render', 
         vscode.ViewColumn.Two,
-        {}
+		{
+			enableScripts: true
+		}
     );
 	const baseUrl = _getBaseUrl();
 	let template = _getActiveTemplate() ?? 'index';
@@ -67,7 +69,6 @@ function _reloadTemplate(template: string, timer: NodeJS.Timeout, panel: vscode.
 	clearTimeout(timer);
 
 	timer = setTimeout(async () => {
-		panel.webview.html = _getWebView('about:blank');
 		panel.webview.html = _getWebView(`http://127.0.0.1:8080/leaf-preview/${template}`);
 	}, 500);
 }
@@ -101,7 +102,10 @@ function _getWebView(location: string) {
 			</style>
 		</head>
 		<body>
-			<iframe src='${location}' sandbox="allow-scripts allow-same-origin"></iframe>
+			<iframe id="webViewFrame" src='${location}' sandbox="allow-scripts allow-same-origin"></iframe>
+			<script>
+				document.getElementById('webViewFrame').src = '${location}
+			</script>
 		</body>
 	</html>`;
 }
