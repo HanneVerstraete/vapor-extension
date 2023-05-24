@@ -7,52 +7,13 @@ export async function setUpLeafRendering () {
         vscode.ViewColumn.Two,
         {}
     );
-
-	const template = _getActiveTemplate;
 	const baseUrl = _getBaseUrl();
+	let template = _getActiveTemplate() ?? 'index';
+	let timer = setTimeout(() => {}, 0);
 	
     panel.webview.html = _getWebView(`${baseUrl}${template}`);
 
-    let timer = setTimeout(() => {}, 0);
-
-    vscode.workspace.onDidChangeTextDocument(async () => {
-		const template = _getActiveTemplate();
-
-        clearTimeout(timer);
-
-        timer = setTimeout(async () => {
-			// TO DO cleaner solve instead reloading by setting to blank
-			panel.webview.html = _getWebView('about:blank');
-			panel.webview.html = _getWebView(`http://127.0.0.1:8080/leaf-preview/${template}`);
-        }, 500);
-   });
-
-   vscode.window.onDidChangeActiveTextEditor(async () => {
-		const template = _getActiveTemplate();
-
-		clearTimeout(timer);
-
-		timer = setTimeout(async () => {
-			// TO DO cleaner solve instead reloading by setting to blank
-			panel.webview.html = _getWebView('about:blank');
-			panel.webview.html = _getWebView(`http://127.0.0.1:8080/leaf-preview/${template}`);
-		}, 500);
-	});
-}
-
-function _getActiveTemplate(): string {
-	let template = '';
-
-	const currentlyOpenTabfilePath = vscode.window.activeTextEditor?.document?.fileName ?? '';
-
-	if (currentlyOpenTabfilePath) {
-		const fileName = currentlyOpenTabfilePath.substring(currentlyOpenTabfilePath.lastIndexOf('/') + 1);
-		if (fileName.includes('.leaf')) {
-			template = fileName.substring(0, fileName.lastIndexOf('.'));
-		}
-	}
-
-	return template;
+	_setEventListeners(template, timer, panel);
 }
 
 function _getBaseUrl() {
@@ -79,6 +40,46 @@ function _getBaseUrl() {
 	} 
 
 	return basUrl;
+}
+
+function _getActiveTemplate(): string | undefined{
+	let template;
+
+	const currentlyOpenTabfilePath = vscode.window.activeTextEditor?.document?.fileName;
+
+	if (currentlyOpenTabfilePath) {
+		const fileName = currentlyOpenTabfilePath.substring(currentlyOpenTabfilePath.lastIndexOf('/') + 1);
+		if (fileName.includes('.leaf')) {
+			template = fileName.substring(0, fileName.lastIndexOf('.'));
+		}
+	}
+
+	return template;
+}
+
+function _reloadTemplate(template: string, timer: NodeJS.Timeout, panel: vscode.WebviewPanel) {
+	const newTemplate = _getActiveTemplate();
+
+	if (newTemplate) {
+		template = newTemplate;
+	}
+
+	clearTimeout(timer);
+
+	timer = setTimeout(async () => {
+		panel.webview.html = _getWebView('about:blank');
+		panel.webview.html = _getWebView(`http://127.0.0.1:8080/leaf-preview/${template}`);
+	}, 500);
+}
+
+function _setEventListeners(template: string, timer: NodeJS.Timeout, panel: vscode.WebviewPanel) {
+	vscode.workspace.onDidChangeTextDocument(async () => {
+		_reloadTemplate(template, timer, panel);
+   	});
+
+   vscode.window.onDidChangeActiveTextEditor(async () => {
+		_reloadTemplate(template, timer, panel);
+	});
 }
 
 function _getWebView(location: string) {
