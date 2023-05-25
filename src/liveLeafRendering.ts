@@ -10,7 +10,7 @@ export async function setUpLeafRendering () {
 		}
     );
 	const baseUrl = _getBaseUrl();
-	let template = _getActiveTemplate() ?? 'index';
+	let template = _getActiveTemplate();
 	let timer = setTimeout(() => {}, 0);
 	
     panel.webview.html = _getWebView(`${baseUrl}${template}`);
