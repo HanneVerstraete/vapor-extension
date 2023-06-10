@@ -45,8 +45,8 @@
       {
         "id": "leaf",
         "icon": {
-          "light": "./src/vapor-logo.png",
-          "dark": "./src/vapor-logo.png"
+          "light": "./src/leaf-logo.png",
+          "dark": "./src/leaf-logo.png"
         }
       }
     ]
