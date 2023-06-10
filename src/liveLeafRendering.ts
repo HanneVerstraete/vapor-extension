@@ -1,5 +1,8 @@
 import * as vscode from 'vscode';
 
+var timer: NodeJS.Timeout;
+var currentlyRenderedTemplate = "";
+
 export async function setUpLeafRendering () {
     const panel = vscode.window.createWebviewPanel(
         'leafRendering', 
@@ -10,17 +13,16 @@ export async function setUpLeafRendering () {
 		}
     );
 	const baseUrl = _getBaseUrl();
-	let template = _getActiveTemplate();
-	let timer = setTimeout(() => {}, 0);
+	const template = _getActiveTemplate();
 	
     panel.webview.html = _getWebView(`${baseUrl}${template}`);
 
-	_setEventListeners(template, timer, panel);
+	_setEventListeners(template, panel);
 }
 
 function _getBaseUrl() {
 	let path = '';
-	let basUrl = 'http://127.0.0.1:8080';
+	let baseUrl = 'http://127.0.0.1:8080';
 
 	if(vscode.workspace.workspaceFolders !== undefined) {
 	 	path = vscode.workspace.workspaceFolders[0].uri.path ;
@@ -36,15 +38,15 @@ function _getBaseUrl() {
 				let startIndex = match.indexOf('http');
 				let endIndex = match.lastIndexOf('/');
 	
-				basUrl = match.substring(startIndex, endIndex + 1);
+				baseUrl = match.substring(startIndex, endIndex + 1);
 			}
 		});
 	} 
 
-	return basUrl;
+	return `${baseUrl}/leaf-preview/`;
 }
 
-function _getActiveTemplate(): string | undefined{
+function _getActiveTemplate(): string {
 	let template;
 
 	const currentlyOpenTabfilePath = vscode.window.activeTextEditor?.document?.fileName;
@@ -56,30 +58,38 @@ function _getActiveTemplate(): string | undefined{
 		}
 	}
 
-	return template;
+	return template ?? '';
 }
 
-function _reloadTemplate(template: string, timer: NodeJS.Timeout, panel: vscode.WebviewPanel) {
-	const newTemplate = _getActiveTemplate();
-
-	if (newTemplate) {
-		template = newTemplate;
+function _reloadTemplate(template: string, panel: vscode.WebviewPanel) {
+	if (timer) {
+		clearTimeout(timer);
 	}
-
-	clearTimeout(timer);
-
+	
 	timer = setTimeout(async () => {
-		panel.webview.html = _getWebView(`http://127.0.0.1:8080/leaf-preview/${template}`);
+		const newTemplate = _getActiveTemplate();
+
+		if (newTemplate.length > 0) {
+			currentlyRenderedTemplate = newTemplate;
+		} else if (currentlyRenderedTemplate.length === 0) {
+			currentlyRenderedTemplate = template;
+		}
+	
+		const timeStamp = Date.now();
+		const baseUrl = _getBaseUrl();
+		
+		//add date to url, so url is always different and iframe will always reload
+		panel.webview.html = _getWebView(`${baseUrl}${currentlyRenderedTemplate}?${timeStamp}`);
 	}, 500);
 }
 
-function _setEventListeners(template: string, timer: NodeJS.Timeout, panel: vscode.WebviewPanel) {
+function _setEventListeners(template: string, panel: vscode.WebviewPanel) {
 	vscode.workspace.onDidChangeTextDocument(async () => {
-		_reloadTemplate(template, timer, panel);
+		_reloadTemplate(template, panel);
    	});
 
    vscode.window.onDidChangeActiveTextEditor(async () => {
-		_reloadTemplate(template, timer, panel);
+		_reloadTemplate(template, panel);
 	});
 }
 

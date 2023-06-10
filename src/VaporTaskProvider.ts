@@ -13,7 +13,7 @@ function createServeTask(): vscode.Task {
 }
 
 function createSwiftTask(command: string, name: string, group?: vscode.TaskGroup): vscode.Task {
-    const workspace = vscode.workspace.workspaceFolders?.[0] ?? vscode.TaskScope.Workspace
+    const workspace = vscode.workspace.workspaceFolders?.[0] ?? vscode.TaskScope.Workspace;
 
     let task = new vscode.Task(
         { type: 'vapor', task: command },
