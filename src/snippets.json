@@ -2,22 +2,22 @@
     "Get request": {
       "prefix": ["app", "app.get"],
       "body": ["app.get(${1:parameters}) {req ->  ${2:type} in", "\t${3:method}", "}"],
-      "description": "A get request."
+      "description": "Adds a get request."
     },
     "Post request": {
       "prefix": ["app", "app.post"],
       "body": ["app.post(${1:parameters}) {req ->  ${2:type} in", "\t${3:method}", "}"],
-      "description": "A post request."
+      "description": "Adds a post request."
     },
     "Put request": {
       "prefix": ["app", "app.put"],
       "body": ["app.put(${1:parameters}) {req ->  ${2:type} in", "\t${3:method}", "}"],
-      "description": "A post request."
+      "description": "Adds a put request."
     },
     "Delete request": {
       "prefix": ["app", "app.delete"],
       "body": ["app.delete(${1:parameters}) {req ->  ${2:type} in", "\t${3: method}", "}"],
-      "description": "A post request."
+      "description": "Adds a delete request."
     },
     "Validatable": {
       "prefix": ["Validatable", "validations"],
@@ -69,5 +69,25 @@
       "prefix": ["app.database.use", ".mongo"],
       "body": ["app.databases.use(.mongo(connectionString: \"${1}\"), as: .mongo)"],
       "description": "Configure the Mongo database's connection string"
+    },
+    "Leaf preview endpoint": {
+      "prefix": ["leaf-preview", "app.get"], 
+      "body":[
+        "app.get(\"leaf-preview\", \":template\") {req -> EventLoopFuture<View> in",
+          "\t // localhost = ${1:baseUrl}",
+          "\tlet template = req.parameters.get(\"template\")!",
+          "\treturn req.view.render(template, ${2:dummyDataForAllTemplates})",
+        "}"
+      ],
+      "description": "Adds an additional endpoint to render leaf previews"
+    },
+    "Dummy data struct": {
+      "prefix": ["struct", "DummyData"],
+      "body": [
+        "struct ${1:DummyData}: Encodable {",
+          "\tvar ${2:varName}: ${3:type}",
+        "}${0}"
+      ],
+      "description": "Adds the struct for the dummyData for leaf previews"
     }
 }
